@@ -3,6 +3,14 @@ const color = {
     green: 'green',
     blue: 'blue'
 };
+
+// test object that makes the simulation run only a few times
+// set on to true to throttle the simulation
+// count limits the number of frames the simulation runs.
+const throttle = {
+    on: true,
+    count: 1
+}
   
 let creatures = [];
 let food = [];
@@ -58,7 +66,7 @@ class Creature {
         this.species = species;
         this.targets = [];
         this.target = null;
-        this.alive = true;
+        this.isAlive = true;
         this.size = species.size;
     }
 
@@ -78,7 +86,7 @@ class Creature {
     }
 
     detectLife() {
-        if(this.alive) {
+        if(this.isAlive) {
             this.targets = creatures.concat(food);
             this.targets = this.targets.filter( target => {
                 let isInRange = this.distanceTo(target) < this.species.aggro;
@@ -96,18 +104,18 @@ class Creature {
             } else {
                 this.target = this.closest(this.targets);
                 console.log(this.target);
-                // if(this.target) {
-                //   if(this.target.x < this.x) {
-                //     this.x -= this.speed;
-                //   } else {
-                //     this.x += this.speed;
-                //   }
-                //   if(this.target.y < this.y) {
-                //     this.y -= this.speed;
-                //   } else {
-                //     this.y += this.speed;
-                //   }
-                // }
+                if(this.target) {
+                  if(this.target.x < this.x) {
+                    this.x -= this.speed;
+                  } else {
+                    this.x += this.speed;
+                  }
+                  if(this.target.y < this.y) {
+                    this.y -= this.speed;
+                  } else {
+                    this.y += this.speed;
+                  }
+                }
             }
         }
     }
@@ -134,9 +142,8 @@ const speciesList = {
 };
 
 function generateSpecies(species) {
-    let size = species.size;
-    let posX = random(size, canvas.width - size);
-    let posY = random(size, canvas.height - size);
+    let posX = random(species.size, canvas.width - species.size);
+    let posY = random(species.size, canvas.height - species.size);
     creatures.push(new Creature(species, posX, posY));
 }
   
@@ -149,7 +156,6 @@ function generateFood(amt) {
 }
   
 function startSimulation() {
-    let count = 0;
     const simInterval = setInterval(()=> {
         clearCanvas();
         creatures = creatures.filter( creature => creature.alive );
@@ -160,7 +166,7 @@ function startSimulation() {
         });
         food.forEach( munchie => munchie.draw() )
         count += 1;
-        if(count >= 1) {
+        if(throttle.on && throttle.count >= 1) {
             clearInterval(simInterval);
         }
     }, 33);
