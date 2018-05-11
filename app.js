@@ -166,8 +166,9 @@ function startSimulation() {
         });
         food.forEach( munchie => munchie.draw() )
         count += 1;
-        if(throttle.on && throttle.count >= 1) {
+        if(throttle.on && throttle.count > 0) {
             clearInterval(simInterval);
+            throttle.count -= 1;
         }
     }, 33);
 }
