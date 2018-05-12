@@ -8,7 +8,81 @@
     <title>Evolution</title>
 </head>
 <body>
-    <canvas width="800", height="600"></canvas>
+    <div class="wrapper">
+        <div class="controller">
+            <h1 class="red" id="title">Evolution!</h1>
+            <h3><span class="red">Eat,</span> <span class="green">Chase,</span> <span class="blue">Flee</span></h3>
+            <div class="red border-red">
+                <h3>Red Species:</h3>
+                <p>
+                    <label for="redMax">Maximum Reds:</label>
+                    <input type="range" id="redMax" min="0" max="50" value="20" step="1">
+                    <output name="redMax">20</output>
+                </p>
+                <p>
+                    <label for="redMin">Minimum Reds:</label>
+                    <input type="range" id="redMin" min="0" max="50" value="10" step="1">
+                    <output name="redMin">10</output>
+                </p>
+            </div>
+            <div class="green border-green">
+                <h3>Green Species:</h3>
+                <p>
+                    <label for="greenMax" >Maximum Greens:</label>
+                    <input type="range" id="greenMax" min="0" max="50" value="20" step="1">
+                    <output name="greenMax">20</output>
+                </p>
+                <p>
+                    <label for="greenMin">Minimum Greens:</label>
+                    <input type="range" id="greenMin" min="0" max="50" value="10" step="1">
+                    <output name="greenMin">10</output>
+                </p>
+            </div>
+            <div class="blue border-blue">
+                <h3>Blue Species:</h3>
+                <p>
+                    <label for="blueMax">Maximum Blues:</label>
+                    <input type="range" id="blueMax" min="0" max="50" value="20" step="1">
+                    <output name="blueMax">20</output>
+                </p>
+                <p>
+                    <label for="blueMin">Minimum Blues:</label>
+                    <input type="range" id="blueMin" min="0" max="50" value="10" step="1">
+                    <output name="blueMin">10</output>
+                </p>
+            </div>
+            <div class="yellow border-yellow">
+                <h3>Food:</h3>
+                <p>
+                    <label for="foodMax">Maximum Food:</label>
+                    <input type="range" id="foodMax" min="0" max="100" value="20" step="1">
+                    <output name="foodMax">20</output>
+                </p>
+                <p>
+                    <label for="foodMin">Minimum Food:</label>
+                    <input type="range" id="foodMin" min="0" max="100" value="10" step="1">
+                    <output name="foodMin">10</output>
+                </p>
+            </div>
+            <div class="red border-red">
+                <button id="popBtn">Populate!</button>
+            </div>
+        </div>
+        <div>
+            <canvas width="800", height="600"></canvas>
+        </div>
+        <div>
+            <ul>
+                <li class="red"><a href="#">View On Github!</a></li>
+                <li class="green"><a href="#">Blog!</a></li>
+                <li class="blue"><a href="#">Project Breakpoint!</a></li>
+            </ul>
+        </div>
+    </div>
+
+
+
+    <script src="evolution.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

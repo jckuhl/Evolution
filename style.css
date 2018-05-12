@@ -1,6 +1,51 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: rgb(19, 19, 19);
+}
+
 canvas {
-    display: block;
-    margin: 0 auto;
-    border: 3px solid black;
+    border: 2px solid red;
     background-color: black;
+}
+
+.wrapper {
+    display: flex;
+    width: 100%;
+}
+
+.controller {
+    width: 25%;
+}
+
+.red {
+    color: red;
+}
+
+.border-red {
+    border-top: 2px solid red;
+}
+
+.green {
+    color: green;
+}
+
+.border-green {
+    border-top: 2px solid green;
+}
+
+.blue {
+    color: blue;
+}
+
+.border-blue {
+    border-top: 2px solid blue;
+}
+
+.yellow {
+    color: yellow;
+}
+
+.border-yellow {
+    border-top: 2px solid yellow;
 }
