@@ -11,26 +11,28 @@ const throttle = {
     on: false,
     count: 1
 }
-  
+
 let creatures = [];
 let food = [];
 const canvas = document.querySelector('canvas');
+const popBtn = document.getElementById('popBtn');
 const context = canvas.getContext('2d');
+let simInterval;
 
 function random(min, max) {
-    if(min > max) {
+    if (min > max) {
         let temp = max;
         max = min;
         min = temp;
     }
     return Math.floor(Math.random() * (max - min) + min);
 }
-  
-  
+
+
 function clearCanvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 }
-  
+
 // Food pellets creatures seek
 class Food {
     constructor(x, y) {
@@ -38,10 +40,10 @@ class Food {
         this.y = y;
         this.isAlive = true;
     }
-    
+
     draw() {
         context.beginPath();
-        context.rect(this.x, this.y, 3,3);
+        context.rect(this.x, this.y, 3, 3);
         context.fillStyle = 'yellow';
         context.fill();
         context.strokeStyle = 'yellow';
@@ -49,21 +51,27 @@ class Food {
         context.stroke();
     }
 }
-  
+
 //defines a creature's species
 //traits that every creature of a species share.
 class Species {
-    constructor(props = {color, size, aggro, speed}) {
+    constructor(props = {
+        color,
+        size,
+        aggro,
+        speed
+    }) {
         this.color = props.color;
         this.size = props.size;
         this.aggro = props.aggro;
         this.speed = props.speed;
     }
 }
-  
+
 // simple creatures that move randomly, search for food
 // and eat or flee from creatures of a different species
 // depending on size.
+
 class Creature {
     constructor(species, x, y) {
         this.x = x;
@@ -73,6 +81,21 @@ class Creature {
         this.target = null;
         this.isAlive = true;
         this.size = species.size;
+        this.direction = "north";
+    }
+
+    static getDirection() {
+        const directions = [
+            "north",
+            "northeast",
+            "east",
+            "southeast",
+            "south",
+            "southwest",
+            "west",
+            "northwest"
+        ]
+        return directions[random(0, directions.length - 1)];
     }
 
     // find the closest target, and if targets are at equal distance, pick at random.
@@ -81,7 +104,7 @@ class Creature {
         let myTarget = null;
         targets.forEach(target => {
             let distance = this.distanceTo(target);
-            if(distance < minDist) {
+            if (distance < minDist) {
                 minDist = distance;
                 myTarget = target;
             }
@@ -91,10 +114,10 @@ class Creature {
     }
 
     detectCollision() {
-        if(this.isAlive && this.targets) {
-            this.targets.forEach( (target)=> {
-                if(this.distanceTo(target) > this.size ) {
-                    if(target.size > this.size) {
+        if (this.isAlive && this.targets) {
+            this.targets.forEach((target) => {
+                if (this.distanceTo(target) < this.size) {
+                    if (target.size > this.size) {
                         target.size += 1;
                         this.isAlive = false;
                     } else {
@@ -107,33 +130,81 @@ class Creature {
     }
 
     detectLife() {
-        if(this.isAlive) {
+        if (this.isAlive) {
             this.targets = creatures.concat(food);
-            this.targets = this.targets.filter( (target) => {
+            this.targets = this.targets.filter((target) => {
                 let isInRange = this.distanceTo(target) < this.species.aggro;
                 let isNotSameSpecies = false;
-                if(target instanceof Creature) {
+                if (target instanceof Creature) {
                     isNotSameSpecies = this.species.color !== target.species.color;
-                } else if(target instanceof Food) {
+                } else if (target instanceof Food) {
                     isNotSameSpecies = true;
                 }
                 return target !== this && isInRange && isNotSameSpecies;
             });
-            if(!this.targets) {
+            if (this.targets.length === 0) {
                 //pick a random direction
+                this.direction = Creature.getDirection();
+                switch (this.direction) {
+                    case 'north':
+                        this.x += 0;
+                        this.y -= this.species.speed;
+                        break;
+                    case 'northeast':
+                        this.x += this.species.speed;
+                        this.y -= this.species.speed;
+                        break;
+                    case 'east':
+                        this.x += this.species.speed;
+                        this.y += 0;
+                        break;
+                    case 'southeast':
+                        this.x += this.species.speed;
+                        this.y += this.species.speed;
+                        break;
+                    case 'south':
+                        this.x += 0;
+                        this.y += this.species.speed;
+                        break;
+                    case 'southwest':
+                        this.x -= this.species.speed;
+                        this.y += this.species.speed;
+                        break;
+                    case 'west':
+                        this.x -= this.species.speed;
+                        this.y -= 0;
+                        break;
+                    case 'northwest':
+                        this.x -= this.species.speed;
+                        this.y -= this.species.speed;
+                        break;
+                }
             } else {
                 this.target = this.closest(this.targets);
-                if(this.target) {
-                  if(this.target.x < this.x) {
-                    this.x -= this.species.speed;
-                  } else {
-                    this.x += this.species.speed;
-                  }
-                  if(this.target.y < this.y) {
-                    this.y -= this.species.speed;
-                  } else {
-                    this.y += this.species.speed;
-                  }
+                if (this.target.size < this.size) {
+                    //if bigger, chase
+                    if (this.target.x < this.x) {
+                        this.x -= this.species.speed;
+                    } else {
+                        this.x += this.species.speed;
+                    }
+                    if (this.target.y < this.y) {
+                        this.y -= this.species.speed;
+                    } else {
+                        this.y += this.species.speed;
+                    }
+                } else {
+                    //if not, run away
+                    if (this.target.x < this.x) {
+                        this.x += this.species.speed;
+                    } else {
+                        this.x -= this.species.speed;
+                    }
+                    if (this.target.y < this.y) {
+                        this.y += this.species.speed;
+                    } else {
+                        this.y -= this.species.speed;
+                    }
                 }
             }
         }
@@ -141,7 +212,7 @@ class Creature {
 
     draw() {
         context.beginPath();
-        context.arc(this.x, this.y, this.species.size, 0, 2 * Math.PI, false);
+        context.arc(this.x, this.y, this.size, 0, 2 * Math.PI, false);
         context.fillStyle = this.species.color;
         context.fill();
         context.strokeStyle = this.species.color;
@@ -150,14 +221,30 @@ class Creature {
     }
 
     distanceTo(other) {
-        return Math.sqrt(Math.pow(this.x-other.x,2) + Math.pow(this.y-other.y,2));
+        return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
     }
 }
-  
+
+
 const speciesList = {
-    red: new Species({color: color.red, size: 10, aggro: 25, speed: 1}),
-    green: new Species({color: color.green, size: 7, aggro: 20, speed: 1}),
-    blue: new Species({color: color.blue, size: 5, aggro: 30, speed: 1})
+    red: new Species({
+        color: color.red,
+        size: 10,
+        aggro: 45,
+        speed: 1
+    }),
+    green: new Species({
+        color: color.green,
+        size: 7,
+        aggro: 40,
+        speed: 2
+    }),
+    blue: new Species({
+        color: color.blue,
+        size: 5,
+        aggro: 50,
+        speed: 2.5
+    })
 };
 
 function generateSpecies(species) {
@@ -165,31 +252,13 @@ function generateSpecies(species) {
     let posY = random(species.size, canvas.height - species.size);
     creatures.push(new Creature(species, posX, posY));
 }
-  
+
 function generateFood(amt) {
-    while(food.length < amt) {
+    while (food.length < amt) {
         let posX = random(3, canvas.width - 3);
         let posY = random(3, canvas.height - 3);
         food.push(new Food(posX, posY));
     }
-}
-  
-function startSimulation() {
-    const simInterval = setInterval(()=> {
-        clearCanvas();
-        creatures = creatures.filter( creature => creature.isAlive );
-        food = food.filter( munchie => munchie.isAlive );
-        creatures.forEach( creature => {
-            creature.detectLife();
-            creature.detectCollision();
-            creature.draw();
-        });
-        food.forEach( munchie => munchie.draw() )
-        if(throttle.on && throttle.count > 0) {
-            clearInterval(simInterval);
-            throttle.count -= 1;
-        }
-    }, 33);
 }
 
 function populate(opts = {
@@ -207,26 +276,40 @@ function populate(opts = {
     const blues = random(opts.blueMin, opts.blueMax);
     const total = reds + blues + greens;
 
-    while(creatures.length < total) {
-        if(creatures.length < reds) {
+    popBtn.disabled = true;
+
+    while (creatures.length < total) {
+        if (creatures.length < reds) {
             generateSpecies(speciesList.red);
-        } else if(creatures.length >= reds && creatures.length < reds + greens) {
+        } else if (creatures.length >= reds && creatures.length < reds + greens) {
             generateSpecies(speciesList.green);
-        } else if(creatures.length >= reds + greens && creatures.length < total) {
+        } else if (creatures.length >= reds + greens && creatures.length < total) {
             generateSpecies(speciesList.blue);
         }
     }
-    generateFood(random(opts.foodMin,opts.foodMax));
-    creatures.forEach( creature => creature.draw() );
-    food.forEach( munchie=> munchie.draw() );
-    startSimulation();
+    generateFood(random(opts.foodMin, opts.foodMax));
+    creatures.forEach(creature => creature.draw());
+    food.forEach(munchie => munchie.draw());
+
+    simInterval = setInterval(() => {
+        clearCanvas();
+        creatures = creatures.filter(creature => creature.isAlive);
+        food = food.filter(munchie => munchie.isAlive);
+        creatures.forEach(creature => {
+            creature.detectLife();
+            creature.detectCollision();
+            creature.draw();
+        });
+        food.forEach(munchie => munchie.draw())
+        if (throttle.on && throttle.count > 0) {
+            clearInterval(simInterval);
+            throttle.count -= 1;
+        }
+    }, 33);
 }
-  
+
 function test() {
     creatures.push(new Creature(speciesList.red, 100, 100));
     creatures.push(new Creature(speciesList.red, 100, 110));
     startSimulation();
 }
-  
-  
-// test();
