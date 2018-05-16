@@ -64,9 +64,14 @@
                     <output name="foodMin">10</output>
                 </p>
             </div>
-            <div class="red border-red">
+            <div class="green border-green">
                 <button id="popBtn">Populate!</button>
+                <button id="maxBtn">Max Values!</button>
+                <button id="minBtn">Min Values!</button>
                 <button id="resetBtn">Reset Options!</button>
+                <button id="pauseBtn">Pause Simulation!</button>
+            </div>
+            <div class="red border-red">
                 <button id="resetSimBtn">Reset Simulation!</button>
             </div>
         </div>
@@ -79,11 +84,26 @@
                 <li class="green"><a href="https://projectbreakpoint.wordpress.com/">Blog!</a></li>
                 <li class="blue"><a href="https://www.projectbreakpoint.com/">Project Breakpoint!</a></li>
             </ul>
+            <h2 class="red">Stats</h2>
+            <div id="stats">
+                <p class="red">Total Reds: <span id="redTotal">0</span></p>
+                <p class="green">Total Greens: <span id="greenTotal">0</span></p>
+                <p class="blue">Total Blues: <span id="blueTotal">0</span></p>
+            </div>
+            <h2 class="red">Circle Stats</h2>
+            <p class="red">Click an individual circle to track it!</p>
+            <div id="indivStats">
+                <p>Circle species: <span id="species">Species</span></p>
+                <p>Circle X Coord: <span id="posX">x</span></p>
+                <p>Circle Y Coord: <span id="posY">y</span></p>
+                <p>Circle target: <span id="target">target</span></p>
+            </div>
+
         </div>
     </div>
 
 
-
+    <script src="colorize.js"></script>
     <script src="evolution.js"></script>
     <script src="controls.js"></script>
 </body>

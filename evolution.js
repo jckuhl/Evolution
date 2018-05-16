@@ -12,14 +12,17 @@ const throttle = {
     count: 1
 }
 
-let creatures = [];
-let food = [];
 const canvas = document.querySelector('canvas');
 const popBtn = document.getElementById('popBtn');
 const context = canvas.getContext('2d');
-let simInterval;
 
-function random(min=0, max) {
+function title(string) {
+    return string.split('').map((c, index) => {
+        return index === 0 ? c.toUpperCase() : c;
+    }).join('');
+}
+
+function random(min = 0, max) {
     if (min > max) {
         let temp = max;
         max = min;
@@ -73,7 +76,7 @@ class Species {
 // depending on size.
 
 class Creature {
-    constructor(species, x, y) {
+    constructor(species, x, y, sim) {
         this.x = x;
         this.y = y;
         this.species = species;
@@ -83,9 +86,11 @@ class Creature {
         this.size = species.size;
         this.direction = 'north';
         this.counter = 0;
+        this.selected = false;
+        this.sim = sim;
     }
 
-    static getDirection(dir='all') {
+    static getDirection(dir = 'all') {
         let directions = [
             "north",
             "northeast",
@@ -96,8 +101,8 @@ class Creature {
             "west",
             "northwest"
         ]
-        const filterDirections = (news)=> directions.filter((direction)=> direction.includes(news))
-        switch(dir) {
+        const filterDirections = (news) => directions.filter((direction) => direction.includes(news))
+        switch (dir) {
             case 'north':
                 directions = filterDirections('north');
                 break;
@@ -113,26 +118,26 @@ class Creature {
             default:
                 break;
         }
-        return directions[random(0, directions.length-1)];
+        return directions[random(0, directions.length - 1)];
     }
 
     constrain() {
-        if(this.x < this.size) {
+        if (this.x < this.size) {
             this.x = this.size;
             //Get westwardly directions
             this.direction = Creature.getDirection('west');
         }
-        if(this.x > canvas.width - this.size) {
+        if (this.x > canvas.width - this.size) {
             this.x = canvas.width - this.size;
             //Get eastwardly directions
             this.direction = Creature.getDirection('east');
         }
-        if(this.y < this.size) {
+        if (this.y < this.size) {
             this.y = this.size;
             // Get a southern direction
             this.direction = Creature.getDirection('south');
         }
-        if(this.y > canvas.height - this.size) {
+        if (this.y > canvas.height - this.size) {
             this.y = canvas.height - this.size;
             // Get a northern direction
             this.direction = Creature.getDirection('north');
@@ -164,6 +169,7 @@ class Creature {
                         this.size += 1;
                         target.isAlive = false;
                     }
+                    this.targets = [];
                 }
             });
         }
@@ -171,7 +177,7 @@ class Creature {
 
     detectLife() {
         if (this.isAlive) {
-            this.targets = creatures.concat(food);
+            this.targets = this.sim.creatures.concat(this.sim.food);
             this.targets = this.targets.filter((target) => {
                 let isInRange = this.distanceTo(target) < this.species.aggro;
                 let isNotSameSpecies = false;
@@ -184,7 +190,7 @@ class Creature {
             });
             if (this.targets.length === 0) {
                 //pick a random direction
-                if(this.counter === 0) {
+                if (this.counter === 0) {
                     this.direction = Creature.getDirection();
                     this.counter = random(50, 250);
                 }
@@ -261,7 +267,7 @@ class Creature {
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI, false);
         context.fillStyle = this.species.color;
         context.fill();
-        context.strokeStyle = this.species.color;
+        context.strokeStyle = this.selected ? 'white' : this.species.color;
         context.lineWidth = 1;
         context.stroke();
     }
@@ -271,91 +277,193 @@ class Creature {
     }
 }
 
+class Simulation {
 
-const speciesList = {
-    red: new Species({
-        color: color.red,
-        size: 10,
-        aggro: 45,
-        speed: 1
-    }),
-    green: new Species({
-        color: color.green,
-        size: 7,
-        aggro: 40,
-        speed: 2
-    }),
-    blue: new Species({
-        color: color.blue,
-        size: 5,
-        aggro: 50,
-        speed: 2.5
-    })
-};
-
-function generateSpecies(species) {
-    let posX = random(species.size, canvas.width - species.size);
-    let posY = random(species.size, canvas.height - species.size);
-    creatures.push(new Creature(species, posX, posY));
-}
-
-function generateFood(amt) {
-    while (food.length < amt) {
-        let posX = random(3, canvas.width - 3);
-        let posY = random(3, canvas.height - 3);
-        food.push(new Food(posX, posY));
+    constructor() {
+        this.paused = false;
+        this.creatures = [];
+        this.food = [];
+        this.clicktargets = [];
+        this.simInterval = null;
+        this.selectedCreature = null;
+        this.speciesList = {
+            red: new Species({
+                color: color.red,
+                size: 10,
+                aggro: 45,
+                speed: 1
+            }),
+            green: new Species({
+                color: color.green,
+                size: 7,
+                aggro: 40,
+                speed: 2
+            }),
+            blue: new Species({
+                color: color.blue,
+                size: 5,
+                aggro: 50,
+                speed: 2.5
+            })
+        };
     }
-}
 
-function populate(opts = {
-    redMin: 10,
-    redMax: 20,
-    greenMin: 10,
-    greenMax: 20,
-    blueMin: 10,
-    blueMax: 20,
-    foodMin: 20,
-    foodMax: 50,
-}) {
-    const reds = random(opts.redMin, opts.redMax);
-    const greens = random(opts.greenMin, opts.greenMax);
-    const blues = random(opts.blueMin, opts.blueMax);
-    const total = reds + blues + greens;
-
-    popBtn.disabled = true;
-
-    while (creatures.length < total) {
-        if (creatures.length < reds) {
-            generateSpecies(speciesList.red);
-        } else if (creatures.length >= reds && creatures.length < reds + greens) {
-            generateSpecies(speciesList.green);
-        } else if (creatures.length >= reds + greens && creatures.length < total) {
-            generateSpecies(speciesList.blue);
+    generateSpecies(species) {
+        let posX = random(species.size, canvas.width - species.size);
+        let posY = random(species.size, canvas.height - species.size);
+        this.creatures.push(new Creature(species, posX, posY, this));
+    }
+    
+    generateFood(amt) {
+        while (this.food.length < amt) {
+            let posX = random(3, canvas.width - 3);
+            let posY = random(3, canvas.height - 3);
+            this.food.push(new Food(posX, posY));
         }
     }
-    generateFood(random(opts.foodMin, opts.foodMax));
-    creatures.forEach(creature => creature.draw());
-    food.forEach(munchie => munchie.draw());
 
-    simInterval = setInterval(() => {
-        clearCanvas();
-        creatures = creatures.filter(creature => creature.isAlive);
-        food = food.filter(munchie => munchie.isAlive);
-        creatures.forEach(creature => {
-            creature.detectLife();
-            creature.detectCollision();
-            creature.draw();
+    trackStats() {
+        let counter = {};
+        this.creatures.forEach( (creature)=> {
+            if(!counter[creature.species.color]) {
+                counter[creature.species.color] = 1;
+            } else {
+                counter[creature.species.color] += 1;
+            }
         });
-        food.forEach(munchie => munchie.draw())
-        if (throttle.on && throttle.count > 0) {
-            clearInterval(simInterval);
-            throttle.count -= 1;
+        redTotal.innerText = counter.red;
+        greenTotal.innerText = counter.green;
+        blueTotal.innerText = counter.blue;
+    }
+
+    trackCreatureStats(creature) {
+        speciesSpan.innerText = title(creature.species.color) + ' Circle'
+        posXSpan.innerText = creature.x;
+        posYSpan.innerText = creature.y;
+        if(creature.target) {
+            if(creature.target instanceof Food) {
+                targetSpan.innerText = 'Food';
+            } else {
+                targetSpan.innerText = title(creature.target.species.color) + ' Circle';
+            }
+        } else {
+            targetSpan.innerText = 'None';
         }
-    }, 33);
+    }
+    
+    populate(opts = {
+        redMin: 10,
+        redMax: 20,
+        greenMin: 10,
+        greenMax: 20,
+        blueMin: 10,
+        blueMax: 20,
+        foodMin: 20,
+        foodMax: 50,
+    }) {
+        this.setEventListeners();
+
+        const reds = random(opts.redMin, opts.redMax);
+        const greens = random(opts.greenMin, opts.greenMax);
+        const blues = random(opts.blueMin, opts.blueMax);
+        const total = reds + blues + greens;
+    
+        popBtn.disabled = true;
+    
+        while (this.creatures.length < total) {
+            if (this.creatures.length < reds) {
+                this.generateSpecies(this.speciesList.red);
+            } else if (this.creatures.length >= reds && this.creatures.length < reds + greens) {
+                this.generateSpecies(this.speciesList.green);
+            } else if (this.creatures.length >= reds + greens && this.creatures.length < total) {
+                this.generateSpecies(this.speciesList.blue);
+            }
+        }
+        this.generateFood(random(opts.foodMin, opts.foodMax));
+        this.creatures.forEach(creature => creature.draw());
+        this.food.forEach(munchie => munchie.draw());
+    
+        this.simInterval = setInterval(() => {
+            if(!this.paused) {
+                clearCanvas();
+                this.creatures = this.creatures.filter(creature => creature.isAlive);
+                this.food = this.food.filter(munchie => munchie.isAlive);
+                this.creatures.forEach(creature => {
+                    creature.detectLife();
+                    creature.detectCollision();
+                    creature.draw();
+                });
+                this.food.forEach(munchie => munchie.draw())
+
+                /* THROTTLE FOR TEST ENV ONLY */
+
+                if (throttle.on && throttle.count > 0) {
+                    clearInterval(this.simInterval);
+                    throttle.count -= 1;
+                }
+
+                /* DELETE THE ABOVE */
+            }
+            if(this.selectedCreature) {
+                this.trackCreatureStats(this.selectedCreature);
+                indivStats.style.visibility = 'visible';
+                indivStats.className = this.selectedCreature.species.color;
+            } else {
+                indivStats.style.visibility = 'hidden';
+            }
+            this.trackStats();
+
+        }, 33);
+    }
+
+    resetSimulation() {
+        if (this.simInterval) {
+            clearInterval(this.simInterval);
+        }
+        this.creatures = [];
+        this.food = [];
+        clearCanvas();
+        popBtn.disabled = false;
+    }
+
+    clickCreature() {
+        const clickTarget = {
+            x: event.offsetX,
+            y: event.offsetY
+        }
+        this.creatures.forEach( (creature)=> {
+            if(creature.distanceTo(clickTarget) < creature.size + 5) {
+                creature.selected = true;
+                this.clicktargets.push(creature);
+            } else {
+                creature.selected = false;
+            }
+            if(this.clicktargets.length === 0) {
+                this.selectedCreature = null;
+            } else if(this.clicktargets.length >= 1) {
+                this.selectedCreature = this.clicktargets[0];
+                // this.clicktargets.shift();
+                // this.clicktargets.forEach( (creature)=> creature.selected = false);
+            }
+            this.clicktargets = this.clicktargets.filter( (creature)=> creature.selected);
+        });
+    }
+
+    setEventListeners() {
+        canvas.addEventListener('click', ()=> this.clickCreature());
+        document.getElementById('resetSimBtn').addEventListener('click', ()=> simulation.resetSimulation());
+    }
 }
 
-function test() {
-    creatures.push(new Creature(speciesList.red, 100, 100));
-    creatures.push(new Creature(speciesList.red, 100, 110));
-    startSimulation();
-}
+const indivStats = document.getElementById('indivStats');
+indivStats.style.visibility = 'hidden';
+
+const redTotal = document.getElementById('redTotal');
+const greenTotal = document.getElementById('greenTotal');
+const blueTotal = document.getElementById('blueTotal');
+
+const speciesSpan = document.getElementById('species');
+const posXSpan = document.getElementById('posX');
+const posYSpan = document.getElementById('posY');
+const targetSpan = document.getElementById('target');
+

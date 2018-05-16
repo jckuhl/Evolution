@@ -1,71 +1,79 @@
-const config = {}
+class Controller {
+    constructor() {
+        this.simulation = null;
+        this.sliders = Array.from(document.querySelectorAll('input[type="range"]'));
+        this.outputs = Array.from(document.querySelectorAll('output'));
+        this.config = {};
+    }
 
-function colorize(element, ...colors) {
-    let index = 0
-    let html = '';
-    element.innerText.split('').forEach((letter)=> {
-        html += `<span class="${colors[index]}">${letter}</span>`;
-        index += 1;
-        if(index >= colors.length) {
-            index = 0;
+    setSliderValue(id, value) {
+        this.config[id] = parseInt(value);
+        this.outputs.filter((output) => output.name === id)[0].value = value;
+    }
+    
+    setSliderMax() {
+        this.sliders.forEach((slider)=> {
+            this.setSliderValue(slider.id, slider.max);
+            slider.value = slider.max;
+        })
+    }
+
+    setSliderMin() {
+        this.sliders.forEach((slider)=> {
+            this.setSliderValue(slider.id, slider.min);
+            slider.value = slider.min;
+        })
+    }
+
+    setSliderDefaults() {
+        this.sliders.forEach((slider) => {
+            this.setSliderValue(slider.id, slider.value);
+        });
+    }
+
+    setSliderEventListeners() {
+        this.sliders.forEach((slider) => slider.addEventListener('change', () => {
+            controls.setSliderValue(event.target.id, event.target.value);
+        }));
+    }
+
+    togglePause() {
+        this.simulation.paused = !this.simulation.paused;
+    }
+
+    resetSliderValue() {
+        const defaultConfig = {
+            redMin: 10,
+            redMax: 20,
+            greenMin: 10,
+            greenMax: 20,
+            blueMin: 10,
+            blueMax: 20,
+            foodMin: 20,
+            foodMax: 50,
         }
-    });
-    return html;
-}
-
-const h1 = document.getElementById('title');
-h1.innerHTML = colorize(h1, 'red', 'green', 'blue');
-
-const sliders = Array.from(document.querySelectorAll('input[type="range"]'));
-const outputs = Array.from(document.querySelectorAll('output'));
-
-function setSliderValue(id, value) {
-    config[id] = parseInt(value);
-    outputs.filter( (output)=> output.name === id)[0].value = value;
-}
-
-function resetSimulation() {
-    if(simInterval) {
-        clearInterval(simInterval);
+        Object.entries(defaultConfig).forEach(([key, value]) => {
+            this.sliders.filter((slider) => slider.id === key)[0].value = value;
+            this.outputs.filter((output) => output.name === key)[0].value = value;
+            this.config[key] = parseInt(value);
+        });
     }
-    creatures = [];
-    food = [];
-    resetSliderValue();
-    clearCanvas();
-    popBtn.disabled = false;
-}
 
-function resetSliderValue() {
-    const defaultConfig = {
-        redMin: 10,
-        redMax: 20,
-        greenMin: 10,
-        greenMax: 20,
-        blueMin: 10,
-        blueMax: 20,
-        foodMin: 20,
-        foodMax: 50,
+    startSimulation() {
+        this.simulation = new Simulation();
+        this.simulation.populate(this.config);
     }
-    Object.entries(defaultConfig).forEach( ([key, value])=>{
-        sliders.filter( (slider)=> slider.id === key)[0].value = value;
-        outputs.filter( (output)=> output.name === key)[0].value = value;
-        config[key] = parseInt(value);
-    });
+
+    setEventListeners() {
+        this.setSliderEventListeners();
+        popBtn.addEventListener('click', () => controls.startSimulation());
+        document.getElementById('resetBtn').addEventListener('click', ()=> controls.resetSliderValue());
+        document.getElementById('maxBtn').addEventListener('click', ()=> controls.setSliderMax());
+        document.getElementById('minBtn').addEventListener('click', ()=> controls.setSliderMin());
+        document.getElementById('pauseBtn').addEventListener('click', ()=> controls.togglePause());
+    }
 }
 
-// Set the default values
-sliders.forEach( (slider)=> {
-    setSliderValue(slider.id, slider.value);
-});
-
-// Set the event listeners to modify the values
-sliders.forEach( (slider)=> slider.addEventListener('change', ()=> {
-    setSliderValue(event.target.id, event.target.value);
-}));
-
-popBtn.addEventListener('click', ()=> {
-    populate(config);
-});
-
-document.getElementById('resetBtn').addEventListener('click', resetSliderValue);
-document.getElementById('resetSimBtn').addEventListener('click', resetSimulation);
+const controls = new Controller();
+controls.setSliderDefaults();
+controls.setEventListeners();
