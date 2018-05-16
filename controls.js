@@ -10,16 +10,16 @@ class Controller {
         this.config[id] = parseInt(value);
         this.outputs.filter((output) => output.name === id)[0].value = value;
     }
-    
+
     setSliderMax() {
-        this.sliders.forEach((slider)=> {
+        this.sliders.forEach((slider) => {
             this.setSliderValue(slider.id, slider.max);
             slider.value = slider.max;
         })
     }
 
     setSliderMin() {
-        this.sliders.forEach((slider)=> {
+        this.sliders.forEach((slider) => {
             this.setSliderValue(slider.id, slider.min);
             slider.value = slider.min;
         })
@@ -38,7 +38,9 @@ class Controller {
     }
 
     togglePause() {
-        this.simulation.paused = !this.simulation.paused;
+        if(this.simulation) {
+            this.simulation.paused = !this.simulation.paused;
+        }
     }
 
     resetSliderValue() {
@@ -64,14 +66,23 @@ class Controller {
         this.simulation.populate(this.config);
     }
 
+    resetSimulation() {
+        if(this.simulation) {   
+            this.simulation.resetSimulation();
+            this.simulation = null;
+        }
+    }
+
     setEventListeners() {
         this.setSliderEventListeners();
-        popBtn.addEventListener('click', () => controls.startSimulation());
-        document.getElementById('resetBtn').addEventListener('click', ()=> controls.resetSliderValue());
-        document.getElementById('maxBtn').addEventListener('click', ()=> controls.setSliderMax());
-        document.getElementById('minBtn').addEventListener('click', ()=> controls.setSliderMin());
-        document.getElementById('pauseBtn').addEventListener('click', ()=> controls.togglePause());
+        popBtn.addEventListener('click', () => this.startSimulation());
+        document.getElementById('resetBtn').addEventListener('click', () => this.resetSliderValue());
+        document.getElementById('maxBtn').addEventListener('click', () => this.setSliderMax());
+        document.getElementById('minBtn').addEventListener('click', () => this.setSliderMin());
+        document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+        document.getElementById('resetSimBtn').addEventListener('click', () => this.resetSimulation());
     }
+
 }
 
 const controls = new Controller();

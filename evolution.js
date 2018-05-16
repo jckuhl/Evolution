@@ -1,17 +1,3 @@
-const color = {
-    red: 'red',
-    green: 'green',
-    blue: 'blue'
-};
-
-// test object that makes the simulation run only a few times
-// set on to true to throttle the simulation
-// count limits the number of frames the simulation runs.
-const throttle = {
-    on: false,
-    count: 1
-}
-
 const canvas = document.querySelector('canvas');
 const popBtn = document.getElementById('popBtn');
 const context = canvas.getContext('2d');
@@ -288,19 +274,19 @@ class Simulation {
         this.selectedCreature = null;
         this.speciesList = {
             red: new Species({
-                color: color.red,
+                color: 'red',
                 size: 10,
                 aggro: 45,
                 speed: 1
             }),
             green: new Species({
-                color: color.green,
+                color: 'green',
                 size: 7,
                 aggro: 40,
                 speed: 2
             }),
             blue: new Species({
-                color: color.blue,
+                color: 'blue',
                 size: 5,
                 aggro: 50,
                 speed: 2.5
@@ -313,7 +299,7 @@ class Simulation {
         let posY = random(species.size, canvas.height - species.size);
         this.creatures.push(new Creature(species, posX, posY, this));
     }
-    
+
     generateFood(amt) {
         while (this.food.length < amt) {
             let posX = random(3, canvas.width - 3);
@@ -324,8 +310,8 @@ class Simulation {
 
     trackStats() {
         let counter = {};
-        this.creatures.forEach( (creature)=> {
-            if(!counter[creature.species.color]) {
+        this.creatures.forEach((creature) => {
+            if (!counter[creature.species.color]) {
                 counter[creature.species.color] = 1;
             } else {
                 counter[creature.species.color] += 1;
@@ -340,8 +326,8 @@ class Simulation {
         speciesSpan.innerText = title(creature.species.color) + ' Circle'
         posXSpan.innerText = creature.x;
         posYSpan.innerText = creature.y;
-        if(creature.target) {
-            if(creature.target instanceof Food) {
+        if (creature.target) {
+            if (creature.target instanceof Food) {
                 targetSpan.innerText = 'Food';
             } else {
                 targetSpan.innerText = title(creature.target.species.color) + ' Circle';
@@ -350,7 +336,7 @@ class Simulation {
             targetSpan.innerText = 'None';
         }
     }
-    
+
     populate(opts = {
         redMin: 10,
         redMax: 20,
@@ -367,9 +353,9 @@ class Simulation {
         const greens = random(opts.greenMin, opts.greenMax);
         const blues = random(opts.blueMin, opts.blueMax);
         const total = reds + blues + greens;
-    
+
         popBtn.disabled = true;
-    
+
         while (this.creatures.length < total) {
             if (this.creatures.length < reds) {
                 this.generateSpecies(this.speciesList.red);
@@ -382,9 +368,9 @@ class Simulation {
         this.generateFood(random(opts.foodMin, opts.foodMax));
         this.creatures.forEach(creature => creature.draw());
         this.food.forEach(munchie => munchie.draw());
-    
+
         this.simInterval = setInterval(() => {
-            if(!this.paused) {
+            if (!this.paused) {
                 clearCanvas();
                 this.creatures = this.creatures.filter(creature => creature.isAlive);
                 this.food = this.food.filter(munchie => munchie.isAlive);
@@ -394,17 +380,8 @@ class Simulation {
                     creature.draw();
                 });
                 this.food.forEach(munchie => munchie.draw())
-
-                /* THROTTLE FOR TEST ENV ONLY */
-
-                if (throttle.on && throttle.count > 0) {
-                    clearInterval(this.simInterval);
-                    throttle.count -= 1;
-                }
-
-                /* DELETE THE ABOVE */
             }
-            if(this.selectedCreature) {
+            if (this.selectedCreature) {
                 this.trackCreatureStats(this.selectedCreature);
                 indivStats.style.visibility = 'visible';
                 indivStats.className = this.selectedCreature.species.color;
@@ -431,32 +408,33 @@ class Simulation {
             x: event.offsetX,
             y: event.offsetY
         }
-        this.creatures.forEach( (creature)=> {
-            if(creature.distanceTo(clickTarget) < creature.size + 5) {
+        this.creatures.forEach((creature) => {
+            if (creature.distanceTo(clickTarget) < creature.size + 5) {
                 creature.selected = true;
                 this.clicktargets.push(creature);
             } else {
                 creature.selected = false;
             }
-            if(this.clicktargets.length === 0) {
+            if (this.clicktargets.length === 0) {
                 this.selectedCreature = null;
-            } else if(this.clicktargets.length >= 1) {
+            } else if (this.clicktargets.length >= 1) {
                 this.selectedCreature = this.clicktargets[0];
                 // this.clicktargets.shift();
                 // this.clicktargets.forEach( (creature)=> creature.selected = false);
             }
-            this.clicktargets = this.clicktargets.filter( (creature)=> creature.selected);
+            this.clicktargets = this.clicktargets.filter((creature) => creature.selected);
         });
     }
 
     setEventListeners() {
-        canvas.addEventListener('click', ()=> this.clickCreature());
-        document.getElementById('resetSimBtn').addEventListener('click', ()=> simulation.resetSimulation());
+        canvas.addEventListener('click', () => this.clickCreature());
     }
 }
 
 const indivStats = document.getElementById('indivStats');
 indivStats.style.visibility = 'hidden';
+
+
 
 const redTotal = document.getElementById('redTotal');
 const greenTotal = document.getElementById('greenTotal');
@@ -466,4 +444,3 @@ const speciesSpan = document.getElementById('species');
 const posXSpan = document.getElementById('posX');
 const posYSpan = document.getElementById('posY');
 const targetSpan = document.getElementById('target');
-
