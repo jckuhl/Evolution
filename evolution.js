@@ -19,7 +19,7 @@ const popBtn = document.getElementById('popBtn');
 const context = canvas.getContext('2d');
 let simInterval;
 
-function random(min, max) {
+function random(min=0, max) {
     if (min > max) {
         let temp = max;
         max = min;
@@ -81,11 +81,12 @@ class Creature {
         this.target = null;
         this.isAlive = true;
         this.size = species.size;
-        this.direction = "north";
+        this.direction = 'north';
+        this.counter = 0;
     }
 
-    static getDirection() {
-        const directions = [
+    static getDirection(dir='all') {
+        let directions = [
             "north",
             "northeast",
             "east",
@@ -95,7 +96,47 @@ class Creature {
             "west",
             "northwest"
         ]
-        return directions[random(0, directions.length - 1)];
+        const filterDirections = (news)=> directions.filter((direction)=> direction.includes(news))
+        switch(dir) {
+            case 'north':
+                directions = filterDirections('north');
+                break;
+            case 'south':
+                directions = filterDirections('south');
+                break;
+            case 'east':
+                directions = filterDirections('east');
+                break;
+            case 'west':
+                directions = filterDirections('west');
+                break;
+            default:
+                break;
+        }
+        return directions[random(0, directions.length-1)];
+    }
+
+    constrain() {
+        if(this.x < this.size) {
+            this.x = this.size;
+            //Get westwardly directions
+            this.direction = Creature.getDirection('west');
+        }
+        if(this.x > canvas.width - this.size) {
+            this.x = canvas.width - this.size;
+            //Get eastwardly directions
+            this.direction = Creature.getDirection('east');
+        }
+        if(this.y < this.size) {
+            this.y = this.size;
+            // Get a southern direction
+            this.direction = Creature.getDirection('south');
+        }
+        if(this.y > canvas.height - this.size) {
+            this.y = canvas.height - this.size;
+            // Get a northern direction
+            this.direction = Creature.getDirection('north');
+        }
     }
 
     // find the closest target, and if targets are at equal distance, pick at random.
@@ -109,12 +150,11 @@ class Creature {
                 myTarget = target;
             }
         });
-        // targets = targets.filter( target => target.distance === minDist);
         return myTarget;
     }
 
     detectCollision() {
-        if (this.isAlive && this.targets) {
+        if (this.isAlive && this.targets.length !== 0) {
             this.targets.forEach((target) => {
                 if (this.distanceTo(target) < this.size) {
                     if (target.size > this.size) {
@@ -144,7 +184,10 @@ class Creature {
             });
             if (this.targets.length === 0) {
                 //pick a random direction
-                this.direction = Creature.getDirection();
+                if(this.counter === 0) {
+                    this.direction = Creature.getDirection();
+                    this.counter = random(50, 250);
+                }
                 switch (this.direction) {
                     case 'north':
                         this.x += 0;
@@ -179,6 +222,8 @@ class Creature {
                         this.y -= this.species.speed;
                         break;
                 }
+                this.constrain();
+                this.counter -= 1;
             } else {
                 this.target = this.closest(this.targets);
                 if (this.target.size < this.size) {
@@ -206,6 +251,7 @@ class Creature {
                         this.y -= this.species.speed;
                     }
                 }
+                this.constrain();
             }
         }
     }
