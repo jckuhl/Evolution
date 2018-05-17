@@ -1,3 +1,5 @@
+const Simulation = require('./simulation');
+
 class Controller {
     constructor() {
         this.simulation = null;
@@ -85,6 +87,4 @@ class Controller {
 
 }
 
-const controls = new Controller();
-controls.setSliderDefaults();
-controls.setEventListeners();
+module.exports = Controller;

@@ -1,0 +1,19 @@
+{
+  "name": "evolution",
+  "version": "1.0.0",
+  "description": "an evolution simulator",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jckuhl/Evolution.git"
+  },
+  "author": "Jonathan C Kuhl",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jckuhl/Evolution/issues"
+  },
+  "homepage": "https://github.com/jckuhl/Evolution#readme"
+}
