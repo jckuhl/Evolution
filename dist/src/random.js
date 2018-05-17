@@ -1,4 +1,4 @@
-module.exports = function random(min = 0, max) {
+module.exports = function random(min, max) {
     if (min > max) {
         let temp = max;
         max = min;

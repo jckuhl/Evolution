@@ -37,7 +37,7 @@
 
         setSliderEventListeners() {
             this.sliders.forEach((slider) => slider.addEventListener('change', () => {
-                controls.setSliderValue(event.target.id, event.target.value);
+                this.setSliderValue(event.target.id, event.target.value);
             }));
         }
 

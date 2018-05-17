@@ -52,22 +52,22 @@
         }
 
         constrain() {
-            if (this.x < this.size) {
+            if (this.x <= this.size) {
                 this.x = this.size;
                 //Get westwardly directions
                 this.direction = Creature.getDirection('west');
             }
-            if (this.x > canvas.width - this.size) {
+            if (this.x >= canvas.width - this.size) {
                 this.x = canvas.width - this.size;
                 //Get eastwardly directions
                 this.direction = Creature.getDirection('east');
             }
-            if (this.y < this.size) {
+            if (this.y <= this.size) {
                 this.y = this.size;
                 // Get a southern direction
                 this.direction = Creature.getDirection('south');
             }
-            if (this.y > canvas.height - this.size) {
+            if (this.y >= canvas.height - this.size) {
                 this.y = canvas.height - this.size;
                 // Get a northern direction
                 this.direction = Creature.getDirection('north');
@@ -99,9 +99,9 @@
                             this.size += 1;
                             target.isAlive = false;
                         }
-                        this.targets = [];
                     }
                 });
+                this.targets = [];
             }
         }
 
@@ -158,7 +158,6 @@
                             this.y -= this.species.speed;
                             break;
                     }
-                    this.constrain();
                     this.counter -= 1;
                 } else {
                     this.target = this.closest(this.targets);
@@ -187,8 +186,8 @@
                             this.y -= this.species.speed;
                         }
                     }
-                    this.constrain();
                 }
+                this.constrain();
             }
         }
 

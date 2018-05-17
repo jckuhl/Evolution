@@ -1,6 +1,7 @@
 const Creature = require('./creature');
 const Species = require('./species');
 const Food = require('./food');
+
 (function() {
 
     const random = require('./random');
@@ -81,9 +82,9 @@ const Food = require('./food');
                     counter[creature.species.color] += 1;
                 }
             });
-            redTotal.innerText = counter.red;
-            greenTotal.innerText = counter.green;
-            blueTotal.innerText = counter.blue;
+            redTotal.innerText = counter.red !== undefined ? counter.red : 0;
+            greenTotal.innerText = counter.green !== undefined ? counter.green : 0;
+            blueTotal.innerText = counter.blue !== undefined ? counter.blue : 0;
         }
 
         trackCreatureStats(creature) {
