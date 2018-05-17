@@ -1,5 +1,8 @@
 # Directories
 node_modules/
 
+#I don't want evolution.js deleted
+#But I don't want it a part of git
 evolution.js
+
 .DS_Store
